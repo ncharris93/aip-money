@@ -1,5 +1,5 @@
 {
-   "name": "money-library",
+   "name": "aip-money",
    "version": "0.1.0",
    "description": "A TypeScript utility library for precise financial calculations with automated AI-driven maintenance.",
    "type": "module",
