@@ -10,6 +10,47 @@ This document outlines the coding standards and development practices for the Mo
 2. **Immutability**: Use immutable data structures and pure functions when possible.
 3. **Type Safety**: Leverage TypeScript's type system to catch errors at compile time.
 4. **Simplicity**: Write simple, readable code. Prefer clarity over cleverness.
+5. **Colocation**: Keep related files together. Tests, interfaces, and implementation should be colocated in the same directory.
+
+## Code Organization
+
+### Colocation
+
+We prefer colocation of related files rather than separation by file type. This means:
+
+- Place test files next to the files they test, not in a separate `/test` directory
+- Keep interfaces and their implementations together
+- Store utility functions close to where they're used
+- Group by feature or domain, not by technical role
+
+Example of preferred structure:
+```
+src/
+  money/
+    money.ts
+    money.test.ts
+    money.types.ts
+    index.ts
+  currency/
+    currency.ts
+    currency.test.ts
+    currency.types.ts
+    index.ts
+```
+
+Rather than:
+```
+src/
+  models/
+    money.ts
+    currency.ts
+  interfaces/
+    money.types.ts
+    currency.types.ts
+tests/
+  money.test.ts
+  currency.test.ts
+```
 
 ## Code Style
 
@@ -19,21 +60,16 @@ This document outlines the coding standards and development practices for the Mo
 
 ```typescript
 // Bad
-function formatMoney(
-  amount: number,
-  currency: string,
-  decimals: number,
-  locale: string
-): string {
+function formatMoney(amount: number, currency: string, decimals: number, locale: string): string {
   // Implementation
 }
 
 // Good
 function formatMoney(options: {
-  amount: number
-  currency: string
-  decimals: number
-  locale: string
+  amount: number;
+  currency: string;
+  decimals: number;
+  locale: string;
 }): string {
   // Implementation
 }

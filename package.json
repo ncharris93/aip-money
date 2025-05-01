@@ -1,0 +1,55 @@
+{
+   "name": "money-library",
+   "version": "0.1.0",
+   "description": "A TypeScript utility library for precise financial calculations with automated AI-driven maintenance.",
+   "type": "module",
+   "main": "dist/index.js",
+   "types": "dist/index.d.ts",
+   "files": [
+      "dist"
+   ],
+   "directories": {
+      "doc": "docs"
+   },
+   "scripts": {
+      "build": "tsc",
+      "test": "vitest run",
+      "test:watch": "vitest",
+      "test:coverage": "vitest run --coverage",
+      "lint": "eslint 'src/**/*.ts'",
+      "format": "prettier --write 'src/**/*.ts'",
+      "prepare": "husky",
+      "prepublishOnly": "npm run build"
+   },
+   "lint-staged": {
+      "*.{js,ts}": [
+         "eslint --fix",
+         "prettier --write"
+      ]
+   },
+   "keywords": [
+      "money",
+      "finance",
+      "typescript",
+      "currency"
+   ],
+   "author": "",
+   "license": "MIT",
+   "devDependencies": {
+      "@eslint/js": "^9.25.1",
+      "@typescript-eslint/eslint-plugin": "^7.0.0",
+      "@typescript-eslint/parser": "^7.0.0",
+      "@vitest/coverage-v8": "^1.0.0",
+      "eslint": "^8.57.1",
+      "eslint-config-prettier": "^9.0.0",
+      "eslint-plugin-prettier": "^5.0.0",
+      "eslint-plugin-simple-import-sort": "^12.1.1",
+      "globals": "^16.0.0",
+      "husky": "^9.0.0",
+      "lint-staged": "^15.5.1",
+      "prettier": "^3.0.0",
+      "typescript": "^5.0.0",
+      "typescript-eslint": "^8.31.1",
+      "vitest": "^1.0.0"
+   }
+}
