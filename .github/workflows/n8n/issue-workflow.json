@@ -1,0 +1,416 @@
+{
+   "name": "GitHub Issue Automation",
+   "nodes": [
+      {
+         "parameters": {
+            "app": "github",
+            "triggerOn": "issues",
+            "events": [
+               "opened",
+               "edited"
+            ],
+            "repository": "={{$env.GITHUB_REPOSITORY}}",
+            "owner": "={{$env.GITHUB_OWNER}}",
+            "authentication": "githubApp"
+         },
+         "id": "github-trigger",
+         "name": "GitHub Trigger",
+         "type": "trigger",
+         "typeVersion": 1,
+         "position": [
+            250,
+            300
+         ]
+      },
+      {
+         "parameters": {
+            "conditions": {
+               "string": [
+                  {
+                     "value1": "={{$node[\"github-trigger\"].json[\"body\"]}}",
+                     "operation": "contains",
+                     "value2": "## Technical Requirements"
+                  },
+                  {
+                     "value1": "={{$node[\"github-trigger\"].json[\"body\"]}}",
+                     "operation": "contains",
+                     "value2": "## Acceptance Criteria"
+                  }
+               ]
+            }
+         },
+         "id": "valid-issue-check",
+         "name": "Valid Issue Format?",
+         "type": "if",
+         "typeVersion": 1,
+         "position": [
+            500,
+            300
+         ]
+      },
+      {
+         "parameters": {
+            "resource": "issue",
+            "operation": "create",
+            "owner": "={{$env.GITHUB_OWNER}}",
+            "repository": "={{$env.GITHUB_REPOSITORY}}",
+            "title": "AI Processing: {{$node[\"github-trigger\"].json[\"title\"]}}",
+            "body": "This issue is being processed by the AI automation system."
+         },
+         "id": "create-processing-issue",
+         "name": "Create Processing Issue",
+         "type": "action",
+         "typeVersion": 1,
+         "position": [
+            700,
+            200
+         ]
+      },
+      {
+         "parameters": {
+            "functionCode": "// This is where AI processing would happen\n// In a real implementation, this would call an LLM API\n\nconst issueBody = items[0].json.body;\n\n// Extract requirements and acceptance criteria\nconst technicalRequirements = extractSection(issueBody, '## Technical Requirements', '##');\nconst acceptanceCriteria = extractSection(issueBody, '## Acceptance Criteria', '##');\n\n// Generate a branch name based on the issue title\nconst issueTitle = items[0].json.title;\nconst sanitizedTitle = issueTitle\n  .toLowerCase()\n  .replace(/[^a-z0-9]/g, '-')\n  .replace(/-+/g, '-')\n  .replace(/^-|-$/g, '');\n\nconst branchName = `feature/${sanitizedTitle}`;\n\nreturn [\n  {\n    json: {\n      issueNumber: items[0].json.number,\n      issueTitle: items[0].json.title,\n      technicalRequirements,\n      acceptanceCriteria,\n      branchName\n    }\n  }\n];\n\n// Helper function to extract sections from the issue body\nfunction extractSection(text, startMarker, endMarker) {\n  const startIndex = text.indexOf(startMarker);\n  if (startIndex === -1) return '';\n  \n  const endIndex = text.indexOf(endMarker, startIndex + startMarker.length);\n  const sectionContent = endIndex === -1 \n    ? text.substring(startIndex + startMarker.length) \n    : text.substring(startIndex + startMarker.length, endIndex);\n    \n  return sectionContent.trim();\n}"
+         },
+         "id": "parse-issue",
+         "name": "Parse Issue Content",
+         "type": "function",
+         "typeVersion": 1,
+         "position": [
+            700,
+            400
+         ]
+      },
+      {
+         "parameters": {
+            "command": "git checkout -b {{$node[\"parse-issue\"].json[\"branchName\"]}}"
+         },
+         "id": "create-branch",
+         "name": "Create Branch",
+         "type": "action",
+         "typeVersion": 1,
+         "position": [
+            900,
+            400
+         ]
+      },
+      {
+         "parameters": {
+            "authentication": "aiService",
+            "prompt": "Generate test cases for the following feature: {{$node[\"parse-issue\"].json[\"issueTitle\"]}}.\n\nTechnical Requirements:\n{{$node[\"parse-issue\"].json[\"technicalRequirements\"]}}\n\nAcceptance Criteria:\n{{$node[\"parse-issue\"].json[\"acceptanceCriteria\"]}}",
+            "options": {
+               "temperature": 0.1,
+               "model": "gpt-4"
+            }
+         },
+         "id": "generate-tests",
+         "name": "Generate Tests",
+         "type": "action",
+         "typeVersion": 1,
+         "position": [
+            1100,
+            400
+         ]
+      },
+      {
+         "parameters": {
+            "authentication": "aiService",
+            "prompt": "Implement code that passes the following tests, following TDD principles. Use TypeScript and follow our style guide which includes: using object parameters for functions with 3+ arguments, documenting with JSDoc, proper error handling.\n\nTests: {{$node[\"generate-tests\"].json[\"output\"]}}",
+            "options": {
+               "temperature": 0.1,
+               "model": "gpt-4"
+            }
+         },
+         "id": "implement-code",
+         "name": "Implement Code",
+         "type": "action",
+         "typeVersion": 1,
+         "position": [
+            1300,
+            400
+         ]
+      },
+      {
+         "parameters": {
+            "command": "npm test"
+         },
+         "id": "run-tests",
+         "name": "Run Tests",
+         "type": "action",
+         "typeVersion": 1,
+         "position": [
+            1500,
+            400
+         ]
+      },
+      {
+         "parameters": {
+            "conditions": {
+               "boolean": [
+                  {
+                     "value1": "={{$node[\"run-tests\"].json[\"exitCode\"]}}",
+                     "value2": 0,
+                     "operation": "equals"
+                  }
+               ]
+            }
+         },
+         "id": "tests-pass-check",
+         "name": "Tests Pass?",
+         "type": "if",
+         "typeVersion": 1,
+         "position": [
+            1700,
+            400
+         ]
+      },
+      {
+         "parameters": {
+            "authentication": "aiService",
+            "prompt": "Update the documentation for this new feature: {{$node[\"parse-issue\"].json[\"issueTitle\"]}}.\n\nImplemented code: {{$node[\"implement-code\"].json[\"output\"]}}",
+            "options": {
+               "temperature": 0.1,
+               "model": "gpt-4"
+            }
+         },
+         "id": "update-docs",
+         "name": "Update Documentation",
+         "type": "action",
+         "typeVersion": 1,
+         "position": [
+            1900,
+            300
+         ]
+      },
+      {
+         "parameters": {
+            "authentication": "aiService",
+            "prompt": "Generate a changelog entry for this new feature: {{$node[\"parse-issue\"].json[\"issueTitle\"]}}.\n\nImplemented code: {{$node[\"implement-code\"].json[\"output\"]}}\n\nFeature type (choose one): feat (new feature), fix (bug fix), docs (documentation), refactor (code refactoring), perf (performance improvements).\n\nFormat the response as a conventional commit message like: 'feat(module): add new feature' or 'fix(module): fix issue with X'",
+            "options": {
+               "temperature": 0.1,
+               "model": "gpt-4"
+            }
+         },
+         "id": "generate-changelog",
+         "name": "Generate Changelog Entry",
+         "type": "action",
+         "typeVersion": 1,
+         "position": [
+            1900,
+            500
+         ]
+      },
+      {
+         "parameters": {
+            "command": "echo '{{$node[\"generate-changelog\"].json[\"output\"]}}' > .commit-message.txt"
+         },
+         "id": "save-commit-message",
+         "name": "Save Commit Message",
+         "type": "action",
+         "typeVersion": 1,
+         "position": [
+            2000,
+            500
+         ]
+      },
+      {
+         "parameters": {
+            "command": "git add . && git commit -F .commit-message.txt && git push origin {{$node[\"parse-issue\"].json[\"branchName\"]}}"
+         },
+         "id": "commit-changes",
+         "name": "Commit Changes",
+         "type": "action",
+         "typeVersion": 1,
+         "position": [
+            2100,
+            500
+         ]
+      },
+      {
+         "parameters": {
+            "resource": "pullRequest",
+            "operation": "create",
+            "owner": "={{$env.GITHUB_OWNER}}",
+            "repository": "={{$env.GITHUB_REPOSITORY}}",
+            "title": "{{$node[\"generate-changelog\"].json[\"output\"]}}",
+            "body": "This PR implements the feature requested in #{{$node[\"parse-issue\"].json[\"issueNumber\"]}}.\n\nChanges include:\n- Implementation of requested functionality\n- Tests to verify functionality\n- Updated documentation\n- Changelog entry\n\nClosing #{{$node[\"parse-issue\"].json[\"issueNumber\"]}}\n\nThis PR was automatically generated by the n8n AI automation workflow.",
+            "base": "main",
+            "head": "{{$node[\"parse-issue\"].json[\"branchName\"]}}"
+         },
+         "id": "create-pr",
+         "name": "Create Pull Request",
+         "type": "action",
+         "typeVersion": 1,
+         "position": [
+            2200,
+            400
+         ]
+      },
+      {
+         "parameters": {
+            "resource": "issue",
+            "operation": "update",
+            "owner": "={{$env.GITHUB_OWNER}}",
+            "repository": "={{$env.GITHUB_REPOSITORY}}",
+            "issueNumber": "={{$node[\"parse-issue\"].json[\"issueNumber\"]}}",
+            "body": "{{$node[\"github-trigger\"].json[\"body\"]}}\n\n---\n\n✅ *This issue has been automatically processed. See PR #{{$node[\"create-pr\"].json[\"number\"]}} for the implementation.*\n\nChangelog entry: `{{$node[\"generate-changelog\"].json[\"output\"]}}`"
+         },
+         "id": "update-issue",
+         "name": "Update Original Issue",
+         "type": "action",
+         "typeVersion": 1,
+         "position": [
+            2300,
+            400
+         ]
+      }
+   ],
+   "connections": {
+      "github-trigger": {
+         "main": [
+            [
+               {
+                  "node": "valid-issue-check",
+                  "type": "main",
+                  "index": 0
+               }
+            ]
+         ]
+      },
+      "valid-issue-check": {
+         "true": [
+            [
+               {
+                  "node": "create-processing-issue",
+                  "type": "main",
+                  "index": 0
+               },
+               {
+                  "node": "parse-issue",
+                  "type": "main",
+                  "index": 0
+               }
+            ]
+         ]
+      },
+      "parse-issue": {
+         "main": [
+            [
+               {
+                  "node": "create-branch",
+                  "type": "main",
+                  "index": 0
+               }
+            ]
+         ]
+      },
+      "create-branch": {
+         "main": [
+            [
+               {
+                  "node": "generate-tests",
+                  "type": "main",
+                  "index": 0
+               }
+            ]
+         ]
+      },
+      "generate-tests": {
+         "main": [
+            [
+               {
+                  "node": "implement-code",
+                  "type": "main",
+                  "index": 0
+               }
+            ]
+         ]
+      },
+      "implement-code": {
+         "main": [
+            [
+               {
+                  "node": "run-tests",
+                  "type": "main",
+                  "index": 0
+               }
+            ]
+         ]
+      },
+      "run-tests": {
+         "main": [
+            [
+               {
+                  "node": "tests-pass-check",
+                  "type": "main",
+                  "index": 0
+               }
+            ]
+         ]
+      },
+      "tests-pass-check": {
+         "true": [
+            [
+               {
+                  "node": "update-docs",
+                  "type": "main",
+                  "index": 0
+               }
+            ]
+         ]
+      },
+      "update-docs": {
+         "main": [
+            [
+               {
+                  "node": "generate-changelog",
+                  "type": "main",
+                  "index": 0
+               }
+            ]
+         ]
+      },
+      "generate-changelog": {
+         "main": [
+            [
+               {
+                  "node": "save-commit-message",
+                  "type": "main",
+                  "index": 0
+               }
+            ]
+         ]
+      },
+      "save-commit-message": {
+         "main": [
+            [
+               {
+                  "node": "commit-changes",
+                  "type": "main",
+                  "index": 0
+               }
+            ]
+         ]
+      },
+      "commit-changes": {
+         "main": [
+            [
+               {
+                  "node": "create-pr",
+                  "type": "main",
+                  "index": 0
+               }
+            ]
+         ]
+      },
+      "create-pr": {
+         "main": [
+            [
+               {
+                  "node": "update-issue",
+                  "type": "main",
+                  "index": 0
+               }
+            ]
+         ]
+      }
+   }
+}
