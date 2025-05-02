@@ -40,6 +40,52 @@ To get started with this project, you can:
 2. Create an issue using the provided templates to see the automation in action
 3. Set up your own n8n instance following the guide in the AI Automation Guide
 
+## Local Development Setup
+
+### Setting up n8n with ngrok for GitHub Webhooks
+
+To develop and test the GitHub automation workflows locally:
+
+1. **Prerequisites:**
+   - [Docker](https://docs.docker.com/get-docker/) and Docker Compose installed
+   - An [ngrok account](https://ngrok.com/) and auth token
+   - A GitHub account with a test repository
+
+2. **Setup:**
+   ```
+   # Make the script executable if needed
+   chmod +x setup-dev-env.sh
+   
+   # Run the setup script
+   ./setup-dev-env.sh
+   ```
+   
+   This script handles:
+   - Creating a `.env` file from the template if needed
+   - Starting the Docker containers for n8n and ngrok
+   - Getting the current ngrok URL (which changes on free tier restarts)
+   - Updating your `.env` file with the webhook URL
+   - Displaying instructions for GitHub webhook configuration
+
+3. **Configure GitHub Webhook:**
+   - Use the URL provided by the setup script output
+   - Add a webhook in your GitHub repository settings:
+     - Payload URL: The URL shown in the script output
+     - Content type: `application/json`
+     - Events: Issues, Issue comments
+   
+   > **Note**: With a free ngrok plan, the URL changes every time you restart. Run `./setup-dev-env.sh` again after each restart to get the new URL and update your webhook.
+
+4. **Access the Services:**
+   - n8n Editor: http://localhost:5678/
+   - ngrok Dashboard: http://localhost:4040/
+
+5. **Test the Setup:**
+   - Create a new issue in your GitHub repository
+   - Check n8n for the triggered workflow
+
+For more detailed instructions, see [AI Automation Guide](docs/ai-automation-guide.md).
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
