@@ -2,27 +2,26 @@ services:
   n8n:
     image: n8nio/n8n:latest
     container_name: repo-manager-n8n
-    restart: unless-stopped
     ports:
       - '5678:5678'
     volumes:
       - n8n_data:/home/node/.n8n
       - ./.github/workflows/n8n:/home/node/.n8n/workflows
     environment:
-      - N8N_HOST=${N8N_HOST:-localhost}
+      # Use ngrok URL for public-facing webhooks
+      - N8N_HOST=0.0.0.0
       - N8N_PORT=5678
-      - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
-      - N8N_EDITOR_BASE_URL=${EDITOR_BASE_URL:-}
+      - N8N_PROTOCOL=https
+      - N8N_WEBHOOK_URL=${WEBHOOK_URL}
+      - N8N_EDITOR_BASE_URL=${WEBHOOK_URL}
       - NODE_ENV=development
       # Add any environment variables needed for GitHub API
       - GITHUB_OWNER=${GITHUB_OWNER}
       - GITHUB_REPOSITORY=${GITHUB_REPOSITORY}
-      - WEBHOOK_URL=${WEBHOOK_URL}
 
   ngrok:
     image: ngrok/ngrok:latest
     container_name: repo-manager-ngrok
-    restart: unless-stopped
     ports:
       - '4040:4040'
     environment:

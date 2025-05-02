@@ -47,36 +47,41 @@ To get started with this project, you can:
 To develop and test the GitHub automation workflows locally:
 
 1. **Prerequisites:**
+
    - [Docker](https://docs.docker.com/get-docker/) and Docker Compose installed
    - An [ngrok account](https://ngrok.com/) and auth token
    - A GitHub account with a test repository
 
 2. **Setup:**
+
    ```
    # Make the script executable if needed
-   chmod +x setup-dev-env.sh
-   
-   # Run the setup script
-   ./setup-dev-env.sh
+   chmod +x init-dev-environment.sh
+
+   # Run the initialization script
+   ./init-dev-environment.sh
    ```
-   
+
    This script handles:
+
    - Creating a `.env` file from the template if needed
-   - Starting the Docker containers for n8n and ngrok
-   - Getting the current ngrok URL (which changes on free tier restarts)
-   - Updating your `.env` file with the webhook URL
-   - Displaying instructions for GitHub webhook configuration
+   - Starting ngrok first to obtain a stable URL
+   - Updating the environment with the current ngrok URL
+   - Starting n8n with the correct webhook URL configuration
+   - Verifying that all services are properly synchronized
 
 3. **Configure GitHub Webhook:**
-   - Use the URL provided by the setup script output
+
+   - Use the URL provided by the initialization script output
    - Add a webhook in your GitHub repository settings:
-     - Payload URL: The URL shown in the script output
+     - Payload URL: The complete webhook URL from n8n
      - Content type: `application/json`
      - Events: Issues, Issue comments
-   
-   > **Note**: With a free ngrok plan, the URL changes every time you restart. Run `./setup-dev-env.sh` again after each restart to get the new URL and update your webhook.
+
+   > **Note**: With a free ngrok plan, the URL changes every time you restart. Always use `./init-dev-environment.sh` to restart your environment, which ensures n8n and ngrok stay synchronized.
 
 4. **Access the Services:**
+
    - n8n Editor: http://localhost:5678/
    - ngrok Dashboard: http://localhost:4040/
 
