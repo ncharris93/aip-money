@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/ncharris93/aip-money/compare/v1.0.0...v1.1.0) (2025-05-03)
+
+
+### Features
+
+* add GitHub Actions workflow to create branches and comment on issues ([8ad5bd4](https://github.com/ncharris93/aip-money/commit/8ad5bd4145c230d5bc67a355f803ef921d5679de))
+
 # 1.0.0 (2025-05-02)
 
 
