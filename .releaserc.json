@@ -23,11 +23,18 @@
          }
       ],
       [
+         "@semantic-release/exec",
+         {
+            "prepareCmd": "mkdir -p ./release && cp -r ./dist ./release && cd ./release && zip -r ../aip-money-${nextRelease.version}.zip ."
+         }
+      ],
+      [
          "@semantic-release/github",
          {
             "assets": [
                {
-                  "path": "dist/**"
+                  "path": "aip-money-${nextRelease.version}.zip",
+                  "label": "aip-money-${nextRelease.version}.zip"
                }
             ]
          }

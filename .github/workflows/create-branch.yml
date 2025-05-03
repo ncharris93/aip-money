@@ -10,11 +10,17 @@ on:
         description: 'Issue number'
         required: true
 
+permissions:
+  contents: write
+  issues: write
+
 jobs:
   create-branch:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Create Branch
         run: |
           git config user.name "GitHub Actions"
