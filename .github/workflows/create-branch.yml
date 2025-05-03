@@ -1,0 +1,36 @@
+name: Create Branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      branchName:
+        description: 'Name of the branch to create'
+        required: true
+      issueNumber:
+        description: 'Issue number'
+        required: true
+
+jobs:
+  create-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create Branch
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git checkout -b ${{ github.event.inputs.branchName }}
+          git push origin ${{ github.event.inputs.branchName }}
+      - name: Comment on Issue
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ github.event.inputs.issueNumber }},
+              body: `Created branch: [${process.env.BRANCH_NAME}](https://github.com/${context.repo.owner}/${context.repo.repo}/tree/${process.env.BRANCH_NAME})`
+            })
+        env:
+          BRANCH_NAME: ${{ github.event.inputs.branchName }}
