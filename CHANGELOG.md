@@ -1,3 +1,15 @@
+# [1.2.0](https://github.com/ncharris93/aip-money/compare/v1.1.0...v1.2.0) (2025-05-03)
+
+
+### Bug Fixes
+
+* update package-lock.json and package.json for consistent package naming and versioning ([9e18fb7](https://github.com/ncharris93/aip-money/commit/9e18fb7db7e96dbe5ddbc476e6ac4e695347b541))
+
+
+### Features
+
+* enhance GitHub Actions workflow and release process with exec plugin ([0f9e7be](https://github.com/ncharris93/aip-money/commit/0f9e7be784bea792cec67a1ad4dfe128234da78a))
+
 # [1.1.0](https://github.com/ncharris93/aip-money/compare/v1.0.0...v1.1.0) (2025-05-03)
 
 
